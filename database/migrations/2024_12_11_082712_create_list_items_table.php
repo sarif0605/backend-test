@@ -17,11 +17,9 @@ return new class extends Migration
             $table->uuid('parent_id')->nullable();
             $table->text('description');
             $table->boolean('is_completed')->default(false);
-            $table->timestamps();
+            $table->timestamps(); // This line is correct; it adds `created_at` and `updated_at`
             $table->foreign('notes_id')->references('id')->on('notes')->onDelete('cascade');
             $table->foreign('parent_id')->references('id')->on('list_items')->onDelete('cascade');
-            $table->softDeletes();
-            $table->timestamps();
         });
     }
 
