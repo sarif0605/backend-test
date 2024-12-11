@@ -11,6 +11,8 @@ use App\Http\Resources\Notes\NotesResourceCollection;
 use App\Models\Notes;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class NotesController extends Controller
 {
@@ -22,13 +24,19 @@ class NotesController extends Controller
 
     public function index(Request $request)
     {
-        $user = auth()->user();
-        $notes = Notes::where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->paginate(6);
-        $notesResponse = NotesResource::collection($notes);
-        return (new NotesResourceCollection($notesResponse))->response()->setStatusCode(201);
+        $user = Auth::user();
+        Log::info($user);
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        $perPage = $request->get('per_page', 6);
+        $notes = Notes::orderBy('created_at', 'desc')
+            ->paginate($perPage)->get();
+
+        return NotesResource::collection($notes);
     }
+
     public function show($id): JsonResponse
     {
         $notes = Notes::with('user')->find($id);

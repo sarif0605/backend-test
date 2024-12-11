@@ -11,14 +11,13 @@ use App\Models\ListItems;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use League\CommonMark\Extension\CommonMark\Node\Block\ListItem;
 
 class ListItemController extends Controller
 {
 
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['index', 'show', 'create', 'update', 'delete', 'toggleStatus']]);
+        $this->middleware('auth:api')->except(['index', 'show', 'create', 'update', 'delete']);
     }
 
     public function index(Request $request)
@@ -41,26 +40,77 @@ class ListItemController extends Controller
         return (new ListItemResourceById($listItem))->response()->setStatusCode(201);
     }
 
-    public function store(ListItemCreateRequest $request): JsonResponse
+    public function store(ListItemCreateRequest $request)
     {
         $data = $request->validated();
-        $list = new ListItems($data);
-        $list->save();
-        return (new ListItemResource($list))->response()->setStatusCode(201);
+
+        // Menyimpan item utama
+        $listItem = new ListItems($data);
+        $listItem->save();
+        if (isset($data['sub_items'])) {
+            $this->storeSubItems($listItem, $data['sub_items']);
+        }
+
+        return response()->json([
+            'data' => new ListItemResource($listItem),
+            'status' => 'success',
+            'message' => 'Item list created successfully',
+        ], 201);
     }
 
-    public function update(string $id, ListItemUpdateRequest $request): JsonResponse
+    protected function storeSubItems(ListItems $parentItem, array $subItems)
     {
-        $listItem = ListItems::find($id);
-        if (!$listItem) {
-            return response()->json([
-                "message" => "List Item dengan ID $id tidak ditemukan"
-            ], 404);
+        foreach ($subItems as $subItemData) {
+            $subItemData['notes_id'] = $parentItem->notes_id;
+            $subItemData['parent_id'] = $parentItem->id;
+            $subItem = new ListItems($subItemData);
+            $subItem->save();
+            if (isset($subItemData['sub_items'])) {
+                $this->storeSubItems($subItem, $subItemData['sub_items']);
+            }
         }
-        $data = $request->validated();
-        $listItem->update($data);
-        return (new ListItemResource($listItem))->response()->setStatusCode(201);
     }
+
+    public function update(ListItemUpdateRequest $request, $id)
+    {
+        $data = $request->validated();
+        $listItem = ListItems::findOrFail($id);
+        $listItem->update($data);
+        return response()->json([
+            'data' => new ListItemResource($listItem),
+            'status' => 'success',
+            'message' => 'Item list updated successfully',
+        ]);
+    }
+
+    public function updateSubItems(ListItemUpdateRequest $request, $id)
+    {
+        $listItem = ListItems::findOrFail($id);
+        $data = $request->validated();
+        if (isset($data['sub_items'])) {
+            $this->updateSubItemsRecursive($listItem, $data['sub_items']);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Sub-items updated successfully',
+        ]);
+    }
+
+    protected function updateSubItemsRecursive(ListItems $parentItem, array $subItems)
+    {
+        foreach ($subItems as $subItemData) {
+            $subItemData['parent_id'] = $parentItem->id;
+            $subItem = ListItems::updateOrCreate(
+                ['id' => $subItemData['id'] ?? null],
+                $subItemData
+            );
+            if (isset($subItemData['sub_items'])) {
+                $this->updateSubItemsRecursive($subItem, $subItemData['sub_items']);
+            }
+        }
+    }
+
 
     public function destroy(string $id)
     {

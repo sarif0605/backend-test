@@ -16,7 +16,7 @@ class NotesResourceById extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            "message" => "Berhasil Menampilkan Data Genre Dengan ID $this->id",
+            "message" => "Berhasil Menampilkan Data Notes Dengan ID $this->id",
             "data" => [
                 'id' => $this->id,
                 'title' => $this->title,

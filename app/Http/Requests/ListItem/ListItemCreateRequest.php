@@ -19,12 +19,17 @@ class ListItemCreateRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
+    // app/Http/Requests/ListItem/ListItemCreateRequest.php
+
     public function rules(): array
     {
         return [
             'notes_id' => 'required|exists:notes,id',
             'parent_id' => 'nullable|exists:list_items,id',
             'description' => 'required|string',
+            'sub_items' => 'nullable|array',
+            'sub_items.*.description' => 'required|string',
+            'sub_items.*.is_completed' => 'nullable|boolean',
         ];
     }
 

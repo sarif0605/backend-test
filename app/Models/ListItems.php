@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+// app/Models/ListItems.php
+
 class ListItems extends Model
 {
     use HasFactory, HasUuids;
@@ -37,5 +39,4 @@ class ListItems extends Model
     {
         return $this->hasMany(ListItems::class, 'parent_id')->with('children');
     }
-
 }

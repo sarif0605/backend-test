@@ -22,20 +22,26 @@ class NotesCreateRequest extends FormRequest
     public function rules()
     {
         return [
-            'title' => 'required|string|max:255',
-            'content' => 'nullable|string',
+            'notes_id' => 'required|exists:notes,id',
+            'parent_id' => 'nullable|exists:list_items,id',
+            'description' => 'required|string',
+             'sub_items' => 'nullable|array', // Menambahkan validasi untuk sub_items
+             'sub_items.*.description' => 'required|string', // Validasi untuk setiap sub-item
+            'sub_items.*.is_completed' => 'nullable|boolean',
         ];
     }
 
     public function messages()
     {
         return [
-            'title.required' => 'The title field is required.',
-            'title.string' => 'The title must be a string.',
-            'title.max' => 'The title must not exceed 255 characters.',
-            'content.string' => 'The content must be a string.',
-            'user_id.required' => 'The user_id field is required.',
-            'user_id.exists' => 'The user_id does not exist.',
+            'notes_id.required' => 'The notes_id field is required.',
+            'notes_id.exists' => 'The notes_id does not exist.',
+            'parent_id.exists' => 'The parent_id does not exist.',
+            'description.required' => 'The description field is required.',
+            'description.string' => 'The description must be a string.',
+            'sub_items.*.description.required' => 'The sub_item description field is required.',
+            'sub_items.*.description.string' => 'The sub_item description must be a string.',
+            'sub_items.*.is_completed.boolean' => 'The sub_item is_completed must be a boolean.',
         ];
     }
 }
