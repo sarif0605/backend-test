@@ -23,8 +23,8 @@ class ListItemResourceById extends JsonResource
                 'content' => $this->content,
                 'created_at' => $this->created_at,
                 'updated_at' => $this->updated_at,
-                'notes' => new NotesResource($this->whenLoaded('notes')),
-                'children' => ListItemResource::collection($this->whenLoaded('children')),
+                'notes' => new NotesResource($this->whenLoaded('notes')) ?? null,
+                'children' => ListItemResource::collection($this->whenLoaded('children')) ?? null,
             ]
         ];
     }

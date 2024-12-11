@@ -24,15 +24,11 @@ class NotesController extends Controller
 
     public function index(Request $request)
     {
-        $user = Auth::user();
-        Log::info($user);
-        if (!$user) {
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
-
+        $userId = Auth::id();
+        Log::info($userId);
         $perPage = $request->get('per_page', 6);
-        $notes = Notes::orderBy('created_at', 'desc')
-            ->paginate($perPage)->get();
+        $notes = Notes::where('user_id', $userId)->orderBy('created_at', 'desc')
+            ->paginate($perPage);
 
         return NotesResource::collection($notes);
     }

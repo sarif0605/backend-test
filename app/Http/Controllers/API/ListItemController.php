@@ -7,6 +7,7 @@ use App\Http\Requests\ListItem\ListItemCreateRequest;
 use App\Http\Requests\ListItem\ListItemUpdateRequest;
 use App\Http\Resources\ListItem\ListItemResource;
 use App\Http\Resources\ListItem\ListItemResourceById;
+use App\Http\Resources\ListItem\ListItemResourceCollection;
 use App\Models\ListItems;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,13 +23,11 @@ class ListItemController extends Controller
 
     public function index(Request $request)
     {
-        $query = ListItems::query();
-        if ($request->has('notes_id')) {
-            $query->where('notes_id', $request->notes_id);
-        }
-        $listItems = $query->with('children')->get();
-        return (new ListItemResource($listItems))->response()->setStatusCode(201);
+        $perPage = $request->get('per_page', 6);
+        $listItems = ListItems::with('children', 'parent', 'notes')->paginate($perPage);
+        return new ListItemResourceCollection($listItems);
     }
+
     public function show($id): JsonResponse
     {
         $listItem = ListItems::with('children')->find($id);
