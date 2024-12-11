@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -70,7 +71,9 @@ class AuthController extends Controller
         ]);
         $user->generateOtpCode();
         $token = JWTAuth::fromUser($user);
+        Log::info($token);
         Mail::to($user->email)->queue(new MailSendOtpCode($user));
+        Log::info("berhasil kirim email");
         return response()->json([
             'message' => 'Registrasi berhasil',
             'token' => $token,
@@ -103,7 +106,7 @@ class AuthController extends Controller
     public function getUser() : JsonResponse
     {
         $user = auth()->user();
-        $currentUser = User::with('role')->find($user->id);
+        $currentUser = User::find($user->id);
         return response()->json([
             "message" => "berhasil get user",
             "data" => new UserResource($currentUser)

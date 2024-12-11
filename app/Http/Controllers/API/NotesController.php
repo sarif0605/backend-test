@@ -14,9 +14,10 @@ use Illuminate\Http\Request;
 
 class NotesController extends Controller
 {
+
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['index', 'show', 'create', 'update', 'delete']]);
+        $this->middleware('auth:api')->except(['index', 'show', 'create', 'update', 'delete']);
     }
 
     public function index(Request $request)
